@@ -1,0 +1,6 @@
+# Keep everything LF in the repo regardless of the checkout platform, so the
+# service-worker hash build.py computes from these files is reproducible.
+* text=auto eol=lf
+
+*.png binary
+*.woff2 binary

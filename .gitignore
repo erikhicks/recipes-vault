@@ -1,0 +1,13 @@
+# Local paths. Copy .env.example to .env; the example is what gets committed.
+.env
+
+__pycache__/
+*.pyc
+
+# Generated each build, consumed by tools/sync.ps1 as the commit message.
+.build-message
+
+# Local scratch
+_debug*.html
+.DS_Store
+Thumbs.db

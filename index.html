@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" data-theme="ink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recipes</title>
+<meta name="description" content="Erik's recipe collection — searchable, filterable, and usable with one hand at the stove.">
+<meta name="theme-color" content="#16130F">
+<meta name="color-scheme" content="dark light">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Recipes">
+<link rel="preload" href="assets/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<a class="skip" href="#results">Skip to recipes</a>
+<div id="sprite" hidden></div>
+
+<header class="rail">
+  <a class="brand" href="#/" aria-label="All recipes">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-word">Recipes</span>
+    <span class="brand-count" id="brand-count"></span>
+  </a>
+
+  <div class="rail-search">
+    <label class="sr-only" for="q">Search recipes</label>
+    <input id="q" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search name, ingredient, or method">
+    <kbd class="rail-kbd" aria-hidden="true">/</kbd>
+  </div>
+
+  <div class="rail-actions">
+    <button id="filter-toggle" class="btn btn-ghost" aria-expanded="false" aria-controls="filters">
+      Filters<span id="filter-count" class="pip" hidden></span>
+    </button>
+    <button id="shuffle" class="btn btn-ghost" title="Pick one at random from the current results">
+      <svg class="ico" aria-hidden="true"><use href="#i-shuffle"></use></svg>
+      <span class="btn-label">Surprise me</span>
+    </button>
+    <button id="theme" class="btn btn-ghost" aria-label="Switch to paper theme">
+      <span id="theme-label" aria-hidden="true">Paper</span>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside id="filters" class="filters" aria-label="Filter recipes">
+    <div class="filters-head">
+      <span class="eyebrow">Narrow it down</span>
+      <button id="clear-filters" class="linky" hidden>Clear all</button>
+    </div>
+    <div id="filter-groups"></div>
+  </aside>
+
+  <main id="main">
+    <section id="list-view">
+      <div class="results-head">
+        <h1 id="results-title" class="results-title">All recipes</h1>
+        <p id="results-meta" class="results-meta" role="status" aria-live="polite"></p>
+      </div>
+      <div id="hub-note" class="hub-note" hidden></div>
+      <ol id="results" class="results"></ol>
+      <div id="empty" class="empty" hidden>
+        <p class="empty-line">Nothing matches that yet.</p>
+        <p class="empty-hint">Try fewer filters, or search for an ingredient like <em>gochujang</em>.</p>
+        <button class="btn btn-solid" data-action="reset">Start over</button>
+      </div>
+    </section>
+
+    <article id="recipe-view" hidden></article>
+  </main>
+</div>
+
+<div id="cook" class="cook" hidden aria-modal="true" role="dialog" aria-label="Cook mode"></div>
+
+<div id="spin" class="spin" hidden aria-hidden="true"><span id="spin-text"></span></div>
+
+<noscript>
+  <p class="noscript">This collection is rendered in the browser, so it needs JavaScript
+  switched on. The recipes themselves live in
+  <a href="data/recipes.json">data/recipes.json</a> if you'd rather read the raw file.</p>
+</noscript>
+
+<script src="assets/app.js" type="module"></script>
+</body>
+</html>

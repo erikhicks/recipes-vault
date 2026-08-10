@@ -1,0 +1,107 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Smoke test</title>
+<!-- Drives the real app in an iframe and asserts the behaviour that is easy to
+     break and tedious to click through: quantity scaling, struck-out state
+     surviving a reload, tag jumps, filter + search composition, and shuffle.
+
+     Serve the repo (py -m http.server 8765) and open
+     http://127.0.0.1:8765/tools/smoke.html — results render in the page and in
+     the document title, so it also works under headless Chrome --dump-dom. -->
+<style>
+  body { margin: 0; font: 14px/1.6 ui-monospace, monospace; background: #16130F; color: #F1EBDF; }
+  iframe { width: 1100px; height: 620px; border: 0; background: #000; }
+  pre { padding: 1rem; margin: 0; white-space: pre-wrap; }
+  .pass { color: #93A96C; }
+  .fail { color: #E8412C; }
+  .total { border-top: 1px solid #38312A; margin-top: .75rem; padding-top: .75rem; }
+</style>
+
+<pre id="out">running…</pre>
+<iframe id="f" src="../index.html#/r/teriyaki-chicken"></iframe>
+
+<script>
+const log = [];
+const ok = (name, cond, extra = "") =>
+  log.push({ pass: !!cond, name, extra: String(extra) });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function report() {
+  const failed = log.filter((l) => !l.pass).length;
+  document.title = log.map((l) => (l.pass ? "PASS " : "FAIL ") + l.name
+    + (l.extra ? " [" + l.extra + "]" : "")).join(" || ");
+  document.getElementById("out").innerHTML =
+    log.map((l) => `<span class="${l.pass ? "pass" : "fail"}">`
+      + (l.pass ? "✓" : "✗") + " " + l.name
+      + (l.extra ? "  [" + l.extra + "]" : "") + "</span>").join("\n")
+    + `<div class="total">${failed} failed of ${log.length}</div>`;
+}
+
+(async () => {
+  try {
+    await wait(2600);
+    const f = document.getElementById("f");
+    const w = f.contentWindow;
+    let d = f.contentDocument;
+    const amounts = () => [...d.querySelectorAll(".ing-amt")].map((n) => n.textContent.trim());
+
+    ok("recipe rendered", d.querySelector(".ticket-title")?.textContent === "Teriyaki Chicken");
+    const before = amounts();
+    ok("base amounts intact", before[1] === "100 ml", before.slice(0, 3).join(" / "));
+
+    for (let i = 0; i < 4; i++) { d.querySelector('[data-scale="1"]').click(); await wait(120); }
+    const after = amounts();
+    ok("stepper reaches 8 servings", /Serves\s*8/.test(d.querySelector(".scaler-v").textContent),
+       d.querySelector(".scaler-v").textContent.trim());
+    ok("100 ml doubles to 200 ml", after[1] === "200 ml", after[1]);
+    ok("125 ml doubles to 250 ml", after[2] === "250 ml", after[2]);
+    ok("'a dash' left alone", after[3] === "a dash (optional)", after[3]);
+    ok("'1/2, thinly sliced' becomes 1", after[4].startsWith("1,"), after[4]);
+    ok("scaled amounts are marked", d.querySelectorAll(".ing-amt.is-scaled").length > 0);
+
+    d.querySelector('[data-done="i0-0"]').click();
+    await wait(150);
+    ok("ingredient strikes out",
+       d.querySelector('[data-done="i0-0"]').getAttribute("aria-pressed") === "true");
+
+    w.location.reload();
+    await wait(2400);
+    d = f.contentDocument;
+    ok("strike survives reload",
+       d.querySelector('[data-done="i0-0"]')?.getAttribute("aria-pressed") === "true");
+    ok("scaling resets on reload", d.querySelector(".ing-amt")?.textContent.includes("6"),
+       d.querySelector(".ing-amt")?.textContent);
+
+    [...d.querySelectorAll("[data-jump]")].find((b) => b.dataset.jump === "cuisine:japanese").click();
+    await wait(400);
+    ok("tag jump filters the list",
+       d.getElementById("results-title").textContent.toLowerCase() === "japanese",
+       d.getElementById("results-title").textContent);
+    ok("filter lands in the hash", w.location.hash.includes("cuisine=japanese"), w.location.hash);
+    ok("japanese returns 3", d.querySelectorAll(".stub").length === 3,
+       d.querySelectorAll(".stub").length + " results");
+
+    const q = d.getElementById("q");
+    q.value = "miso";
+    q.dispatchEvent(new Event("input", { bubbles: true }));
+    await wait(300);
+    ok("search composes with filter", d.querySelectorAll(".stub").length === 1,
+       d.querySelectorAll(".stub").length + " results");
+
+    d.getElementById("clear-filters").click();
+    await wait(300);
+    ok("clear all restores everything", d.querySelectorAll(".stub").length === 80,
+       d.querySelectorAll(".stub").length + " results");
+
+    d.getElementById("shuffle").click();
+    await wait(1800);
+    ok("shuffle opens a recipe", /#\/r\/.+/.test(w.location.hash), w.location.hash);
+
+    ok("service worker registers",
+       (await w.navigator.serviceWorker.getRegistrations()).length > 0);
+  } catch (error) {
+    ok("suite ran to completion", false, error.message);
+  }
+  report();
+})();
+</script>

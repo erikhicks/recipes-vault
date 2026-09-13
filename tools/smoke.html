@@ -58,6 +58,10 @@ function report() {
     ok("'a dash' left alone", after[3] === "a dash (optional)", after[3]);
     ok("'1/2, thinly sliced' becomes 1", after[4].startsWith("1,"), after[4]);
     ok("scaled amounts are marked", d.querySelectorAll(".ing-amt.is-scaled").length > 0);
+    ok("print button present", d.querySelector("[data-print]"));
+    ok("print-only serves stat follows the scaler",
+       /8\s*\(2×\)/.test(d.querySelector(".stat.print-only")?.textContent || ""),
+       d.querySelector(".stat.print-only")?.textContent.trim().replace(/\s+/g, " "));
 
     d.querySelector('[data-done="i0-0"]').click();
     await wait(150);
@@ -90,8 +94,10 @@ function report() {
 
     d.getElementById("clear-filters").click();
     await wait(300);
-    ok("clear all restores everything", d.querySelectorAll(".stub").length === 80,
-       d.querySelectorAll(".stub").length + " results");
+    // The brand count is the bundle's own total, so this holds as recipes are added.
+    const total = Number(d.getElementById("brand-count").textContent);
+    ok("clear all restores everything", total > 0 && d.querySelectorAll(".stub").length === total,
+       d.querySelectorAll(".stub").length + " of " + total);
 
     d.getElementById("shuffle").click();
     await wait(1800);

@@ -708,9 +708,114 @@ a { color: inherit; }
   }
 }
 
+.print-only { display: none; }
+
+/* ================================ Print ================================
+
+   The ticket on white paper, whichever theme is on screen: the paper palette
+   pushed a shade darker so greys survive a laser printer. Only text colour
+   carries meaning, because browsers drop backgrounds by default. Ingredients
+   go into two columns and the method runs full width below, which puts a
+   typical recipe on one page.                                              */
+
+@page { margin: 1.5cm; }
+
 @media print {
-  .rail, .filters, .ticket-tools, .back, .cook, .spin { display: none !important; }
-  body { background: #fff; color: #000; }
-  .ticket { background: #fff; max-width: none; padding: 0; mask-image: none; }
-  .ing-name span { background: #fff; }
+  :root, :root[data-theme] {
+    --ground:    #fff;
+    --surface:   #fff;
+    --surface-2: #fff;
+    --rule:      #9C917D;
+    --dots:      #9C917D;
+    --rule-soft: #C6BBA5;
+    --text:      #14110D;
+    --text-dim:  #3A332A;
+    --text-mute: #685F51;
+    --thermal:   #B42A17;
+    --amber:     #7A5210;
+  }
+
+  html { font-size: 10.5pt; }
+  body { background: #fff; color: var(--text); }
+
+  .rail, .filters, .back, .cook, .spin, .skip,
+  .ticket-tools, .cook-hint, .prose details { display: none !important; }
+  .print-only { display: block; }
+
+  .shell { display: block; max-width: none; padding: 0; }
+  #recipe-view { display: block; }
+  .ticket {
+    max-width: none; padding: 0; background: none;
+    -webkit-mask-image: none; mask-image: none;
+  }
+
+  /* --- header --- */
+  .ticket-no::after {
+    height: 0; background: none;
+    border-top: 1px dashed var(--rule);
+  }
+  .ticket-title { --t-title: 2.6rem; margin: 0.45rem 0 0.4rem; }
+
+  .ticket-tags { gap: 0.4rem; margin-bottom: 0.9rem; }
+  .ticket-tags .chip {
+    padding: 0; border: 0; background: none; color: var(--text-mute);
+  }
+  .ticket-tags .ico { display: none; }
+  .ticket-tags .chip + .chip::before { content: "·"; color: var(--rule); }
+
+  .ticket-sum { max-width: none; margin-bottom: 1rem; font-size: 1rem; }
+
+  .stats { gap: 0; margin-bottom: 0; background: none; border: 1px solid var(--rule); }
+  .stat { flex: 1 1 6rem; padding: 0.45rem 0.7rem; border-right: 1px solid var(--rule); }
+  .stat:last-child { border-right: 0; }
+
+  /* --- sections --- */
+  .section { margin-top: 1.4rem; }
+  .ticket > section:first-of-type {
+    margin-top: 1.1rem; padding-top: 1.1rem;
+    border-top: 2px solid var(--text);
+  }
+  .section-name, .subsection { break-after: avoid; }
+  .section-name { margin-bottom: 0.6rem; }
+
+  /* --- ingredients: two columns, pen boxes, nothing struck --- */
+  .shop { column-count: 2; column-gap: 2rem; }
+  .shop .subsection { margin-top: 0.9rem; }
+  .shop .subsection:first-child { margin-top: 0; }
+  .ings { max-width: none; }
+  .ing { padding: 0.12rem 0; break-inside: avoid; }
+  .ing-box { border-color: var(--text-mute); }
+  .ing[aria-pressed="true"] { color: inherit; }
+  .ing[aria-pressed="true"] .ing-box { background: none; border-color: var(--text-mute); color: transparent; }
+  .ing[aria-pressed="true"] .ing-name span,
+  .ing[aria-pressed="true"] .ing-amt { text-decoration: none; }
+  .ing[aria-pressed="true"] .ing-name::after { opacity: 1; }
+  .ing-amt, .ing[aria-pressed="true"] .ing-amt, .ing-amt.is-scaled { color: var(--amber); }
+  /* A half-page column is narrow; long amounts stack under the name. */
+  .ing-amt { white-space: normal; }
+  .ing.is-long { grid-template-columns: 1.1rem minmax(0, 1fr); }
+  .ing.is-long .ing-name::after { content: none; }
+  .ing.is-long .ing-amt { grid-column: 2; text-align: left; }
+
+  /* --- method --- */
+  .steps { max-width: none; }
+  .steps > li { break-inside: avoid; }
+  .step { padding: 0.4rem 0; font-size: 1rem; }
+  .step[aria-pressed="true"] { opacity: 1; }
+  .step[aria-pressed="true"] .step-name,
+  .step[aria-pressed="true"] .step-body { text-decoration: none; }
+  .step[aria-pressed="true"]::before { color: var(--thermal); }
+
+  /* --- pairings on one line, prose, links as plain text --- */
+  .pairs { display: block; max-width: none; }
+  .pair { display: inline; padding: 0; background: none; border: 0; }
+  .pair + .pair::before { content: " · "; color: var(--rule); }
+  .pair-t { display: inline; font-size: 1rem; }
+  .pair-n { display: none; }
+
+  .prose { max-width: none; }
+  .prose > * { break-inside: avoid; }
+  .prose a, .wikilink { color: inherit; text-decoration: none; border: 0; }
+
+  .ticket-foot { margin-top: 1.5rem; padding-top: 0.75rem; }
 }

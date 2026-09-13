@@ -431,14 +431,17 @@ function renderRecipe(slug) {
   const base = r.servings;
   const target = state.servings.get(slug) || base;
   const factor = base ? target / base : 1;
+  const times = factor !== 1 ? ` (${factor.toFixed(2).replace(/\.?0+$/, "")}×)` : "";
   const done = readDone(slug);
 
+  const stat = (k, v, cls = "") =>
+    `<div class="stat${cls}"><div class="eyebrow">${k}</div><div class="stat-v">${escapeHTML(v)}</div></div>`;
+  // The scaler doesn't print, so paper gets the serving count as a plain stat.
   const stats = [
     ["Prep", r.times.prep], ["Cook", r.times.cook],
     ["Total", r.times.total], ["Yield", r.times.yield],
-  ].filter(([, v]) => v).map(([k, v]) =>
-    `<div class="stat"><div class="eyebrow">${k}</div><div class="stat-v">${escapeHTML(v)}</div></div>`
-  ).join("");
+  ].filter(([, v]) => v).map(([k, v]) => stat(k, v)).join("")
+    + (base ? stat("Serves", `${target}${times}`, " print-only") : "");
 
   const chips = r.tags.map((t) => {
     const [prefix, value] = t.includes("/") ? t.split("/") : [null, t];
@@ -456,7 +459,7 @@ function renderRecipe(slug) {
     <div class="scaler" role="group" aria-label="Scale the quantities">
       <button class="scaler-btn" type="button" data-scale="-1" aria-label="Fewer servings"
         ${target <= 1 ? "disabled" : ""}>−</button>
-      <span class="scaler-v">Serves <b>${target}</b>${factor !== 1 ? ` (${factor.toFixed(2).replace(/\.?0+$/, "")}×)` : ""}</span>
+      <span class="scaler-v">Serves <b>${target}</b>${times}</span>
       <button class="scaler-btn" type="button" data-scale="1" aria-label="More servings"
         ${target >= base * 8 ? "disabled" : ""}>+</button>
     </div>` : "";
@@ -487,12 +490,13 @@ function renderRecipe(slug) {
       ${stats ? `<div class="stats">${stats}</div>` : ""}
       <div class="ticket-tools">
         ${r.steps.length ? `<button class="btn btn-solid" data-cook="1">${icon("cook")}Cook mode</button>` : ""}
+        <button class="btn btn-ghost" data-print="1">Print</button>
         ${scaler}
       </div>
 
       ${r.shopping.length ? `<section class="section">
         <h2 class="section-name">${icon("basket")}Shopping list</h2>
-        ${ingredientsHTML(r, factor, done)}
+        <div class="shop">${ingredientsHTML(r, factor, done)}</div>
         ${factor !== 1 ? `<p class="cook-hint">Scaled quantities are shown in red. Only the leading number of each amount is scaled.</p>` : ""}
       </section>` : ""}
 
@@ -669,6 +673,8 @@ document.addEventListener("click", (event) => {
     return;
   }
   if (event.target.closest("[data-close-cook]")) { closeCook(); return; }
+  // Everything print-specific lives in the @media print block, so Ctrl+P matches.
+  if (event.target.closest("[data-print]")) { window.print(); return; }
   if (event.target.closest("[data-action='reset']")) {
     state.q = "";
     el("q").value = "";

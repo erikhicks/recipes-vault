@@ -5,7 +5,7 @@
    VERSION is rewritten by tools/build.py from a hash of the shell files, so
    deploying changed CSS or JS retires the old cache on its own. */
 
-const VERSION = "8d3f883ccf23";
+const VERSION = "500b54b5e1a1";
 const SHELL = `shell-${VERSION}`;
 const DATA = "data-v1";
 

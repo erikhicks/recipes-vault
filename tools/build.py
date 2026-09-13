@@ -199,7 +199,10 @@ def parse_steps(lines):
             continue
         if steps and line.strip():
             # A continuation line or nested bullet belonging to the step above.
-            steps[-1]["sub"].append(strip_inline(line.strip().lstrip("-*").strip()))
+            # A `---` rule before the next heading strips to nothing; skip it.
+            sub = strip_inline(line.strip().lstrip("-*").strip())
+            if sub:
+                steps[-1]["sub"].append(sub)
     flush()
     return groups
 

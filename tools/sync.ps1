@@ -43,7 +43,7 @@ try {
     if ($Check) { return }
 
     if (-not (Test-Path "$repo\.git")) {
-        Write-Host "`nNot a git repository yet — built the data but stopped there." -ForegroundColor Yellow
+        Write-Host "`nNot a git repository yet - built the data but stopped there." -ForegroundColor Yellow
         Write-Host "Run 'git init' and add a remote, then re-run this script."
         return
     }

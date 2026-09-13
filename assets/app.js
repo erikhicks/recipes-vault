@@ -490,7 +490,8 @@ function renderRecipe(slug) {
       ${stats ? `<div class="stats">${stats}</div>` : ""}
       <div class="ticket-tools">
         ${r.steps.length ? `<button class="btn btn-solid" data-cook="1">${icon("cook")}Cook mode</button>` : ""}
-        <button class="btn btn-ghost" data-print="1">Print</button>
+        <button class="btn btn-ghost" data-print="1">${icon("print")}Print</button>
+        <button class="btn btn-ghost" data-share="1">${icon("share")}<span class="share-label">Share</span></button>
         ${scaler}
       </div>
 
@@ -612,6 +613,32 @@ function shuffle() {
   }, 65);
 }
 
+/* ================================ share ================================
+
+   The native share sheet where there is one (phones, Safari, Chromium on
+   Windows), else the link goes to the clipboard. The URL is the bare recipe
+   route: whatever filters led here are nobody else's business.            */
+
+async function shareRecipe(button) {
+  const slug = currentSlug();
+  const r = slug && BY_SLUG.get(slug);
+  if (!r) return;
+  const url = location.href.split("#")[0] + "#/r/" + slug;
+
+  if (navigator.share) {
+    try { await navigator.share({ title: r.title, url }); return; }
+    catch (error) { if (error.name === "AbortError") return; }
+  }
+  const label = button.querySelector(".share-label");
+  try {
+    await navigator.clipboard.writeText(url);
+    label.textContent = "Link copied";
+  } catch {
+    label.textContent = "Couldn't copy";
+  }
+  setTimeout(() => { label.textContent = "Share"; }, 2000);
+}
+
 /* =============================== events =============================== */
 
 function onFilterChip(button) {
@@ -675,6 +702,8 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-cook]")) { closeCook(); return; }
   // Everything print-specific lives in the @media print block, so Ctrl+P matches.
   if (event.target.closest("[data-print]")) { window.print(); return; }
+  const share = event.target.closest("[data-share]");
+  if (share) { shareRecipe(share); return; }
   if (event.target.closest("[data-action='reset']")) {
     state.q = "";
     el("q").value = "";

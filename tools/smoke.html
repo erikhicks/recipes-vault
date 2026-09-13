@@ -58,7 +58,17 @@ function report() {
     ok("'a dash' left alone", after[3] === "a dash (optional)", after[3]);
     ok("'1/2, thinly sliced' becomes 1", after[4].startsWith("1,"), after[4]);
     ok("scaled amounts are marked", d.querySelectorAll(".ing-amt.is-scaled").length > 0);
-    ok("print button present", d.querySelector("[data-print]"));
+    ok("print and share carry icons",
+       d.querySelector('[data-print] use[href="#i-print"]') && d.querySelector('[data-share] use[href="#i-share"]'));
+
+    // Stub the share sheet so headless runs don't open a real one.
+    let shared = null;
+    w.navigator.share = (payload) => { shared = payload; return Promise.resolve(); };
+    d.querySelector("[data-share]").click();
+    await wait(100);
+    ok("share hands over the bare recipe url",
+       shared && shared.title === "Teriyaki Chicken" && /\/(index\.html)?#\/r\/teriyaki-chicken$/.test(shared.url),
+       shared && shared.url);
     ok("print-only serves stat follows the scaler",
        /8\s*\(2×\)/.test(d.querySelector(".stat.print-only")?.textContent || ""),
        d.querySelector(".stat.print-only")?.textContent.trim().replace(/\s+/g, " "));

@@ -48,6 +48,10 @@ method steps, or no summary, and any `Pairs Well With` link pointing at a note
 that doesn't exist. Those are usually real gaps in the vault rather than parser
 failures, but they're worth a look.
 
+A cuisine page (one cuisine filter on) shows an intro only if that cuisine's
+hub note in `Cuisines/` has an `## Intro` section. Nothing else in the hub is
+published, so `Serving Notes` and the like stay private working notes.
+
 The vault path is resolved in that order: `--vault`, then a `RECIPE_VAULT`
 environment variable, then `RECIPE_VAULT` in `.env`. If none is set, the script
 says so and tells you how to fix it.

@@ -295,10 +295,11 @@ def parse_recipe(path, vault):
 def parse_cuisine_hub(path):
     raw = open(path, encoding="utf-8").read().replace("\r\n", "\n")
     name = os.path.splitext(os.path.basename(path))[0]
+    # Only an explicit "## Intro" is published. The hub's other sections
+    # (Serving Notes and friends) are working notes for the vault, not site copy.
     notes = []
     for heading, body in split_sections(raw.split("\n")):
-        key = (heading or "").strip().lower()
-        if key in ("notes", "serving notes", "pairing notes", "storage notes"):
+        if (heading or "").strip().lower() == "intro":
             notes.append(strip_inline(" ".join(x.strip() for x in body if x.strip())))
     return {"slug": name.lower(), "name": name, "notes": " ".join(notes).strip()}
 
